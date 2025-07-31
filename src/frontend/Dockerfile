@@ -1,4 +1,4 @@
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -16,8 +16,8 @@ FROM nginx:alpine
 # Remove default nginx static content
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy React build from previous stage
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy Vite build output
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
