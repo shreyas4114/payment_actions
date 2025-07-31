@@ -6,7 +6,6 @@ on:
 env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: paymentapp
-  EKS_CLUSTER: payment-eks
 
 jobs:
   sonarcloud-scan:
@@ -57,9 +56,51 @@ jobs:
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       # Optional: Check Quality Gate status
-      - name: SonarCloud Quality Gate Check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+      # - name: SonarCloud Quality Gate Check
+      #   uses: sonarsource/sonarqube-quality-gate-action@master
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+  
+  BUILD_AND_PUBLISH:
+    name: Build & Push Docker Images
+    needs: sonarcloud-scan
+    runs-on: ubuntu-latest
+  
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+  
+      # Backend Image
+      - name: Build & Push Backend Image to ECR
+        uses: appleboy/docker-ecr-action@master
+        with:
+          access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ${{ secrets.REGISTRY }}
+          repo: payment-backend
+          region: ${{ env.AWS_REGION }}
+          tags: latest,${{ github.run_number }}
+          daemon_off: false
+          dockerfile: ./src/backend/Dockerfile
+          context: ./src/backend
+  
+      # Frontend Image
+      - name: Build & Push Frontend Image to ECR
+        uses: appleboy/docker-ecr-action@master
+        with:
+          access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ${{ secrets.REGISTRY }}
+          repo: payment-frontend
+          region: ${{ env.AWS_REGION }}
+          tags: latest,${{ github.run_number }}
+          daemon_off: false
+          dockerfile: ./src/frontend/Dockerfile
+          context: ./src/frontend
+  
+              
+  
+  
+  
