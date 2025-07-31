@@ -11,7 +11,7 @@ mongoose.connect(process.env.MONGO_URI, {
     console.error("MongoDB connection error:", err);
 });
 
-// mongoose.connect('mongodb+srv://shreyas0411:Shreyas0411@cluster0.xtbvp42.mongodb.net/Paytm');
+// mongoose.connect('mongodb_url');
 
 // Create a Schema for Users
 const userSchema = new mongoose.Schema({
