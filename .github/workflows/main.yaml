@@ -1,0 +1,65 @@
+name: SonarCloud Code Quality Check
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: paymentapp
+  EKS_CLUSTER: payment-eks
+
+jobs:
+  sonarcloud-scan:
+    runs-on: ubuntu-latest
+    name: SonarCloud Analysis
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Setup Node.js (for both frontend and backend)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # Install & test backend (Node.js)
+      - name: Install Backend Dependencies
+        working-directory: ./src/backend
+        run: npm install
+
+      - name: Run Backend Tests (optional)
+        working-directory: ./src/backend
+        run: npm test || true
+
+      # Install & test frontend (React)
+      - name: Install Frontend Dependencies
+        working-directory: ./src/frontend
+        run: npm install
+
+      - name: Run Frontend Tests (optional)
+        working-directory: ./src/frontend
+        run: npm test || true
+
+      # Setup SonarScanner
+      - name: Setup SonarScanner
+        uses: warchant/setup-sonar-scanner@v7
+
+      # Run SonarCloud scan for both frontend & backend
+      - name: SonarCloud Scan
+        run: |
+          sonar-scanner \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=src/backend,src/frontend \
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/** \
+            -Dsonar.host.url=${{ secrets.SONAR_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      # Optional: Check Quality Gate status
+      - name: SonarCloud Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
