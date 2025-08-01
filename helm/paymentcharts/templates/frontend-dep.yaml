@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.appimage }}:{{ .Values.apptag }}   # Replace with your ECR image
+          ports:
+            - containerPort: 80
+
+      initContainers:
+        - name: wait-for-backend
+          image: busybox
+          command: ['sh', '-c', 'until nslookup backend-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo "Waiting for backend..."; sleep 2; done;']
+        - name: wait-for-mongodb
+          image: busybox
+          command: ['sh', '-c', 'until nslookup mongodb-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo "Waiting for MongoDB..."; sleep 2; done;']

@@ -2,7 +2,15 @@ const mongoose = require("mongoose");
 const moment = require('moment-timezone');
 require('dotenv').config(); 
 
-mongoose.connect(process.env.MONGO_URI, {
+const {
+    MONGO_PASSWORD,
+    MONGO_HOST,
+} = process.env;
+
+// Construct the URI
+const MONGO_URI = `mongodb://admin:${MONGO_PASSWORD}@${MONGO_HOST}:27017/payment?authSource=admin`;
+
+mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
