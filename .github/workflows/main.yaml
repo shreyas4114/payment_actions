@@ -135,10 +135,7 @@ jobs:
           namespace: default
           name: payment-stack    
           values: |
-            backend.image.repository=${{ secrets.REGISTRY }}/payment-backend
-            backend.image.tag=${{ github.run_number }}
-            frontend.image.repository=${{ secrets.REGISTRY }}/payment-frontend
-            frontend.image.tag=${{ github.run_number }}
+            backend.image.repository=${{ secrets.REGISTRY }}/payment-backend,backend.image.tag=${{ github.run_number }},frontend.image.repository=${{ secrets.REGISTRY }}/payment-frontend,frontend.image.tag=${{ github.run_number }}
               
   
   
